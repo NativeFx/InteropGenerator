@@ -1,0 +1,9 @@
+﻿{
+  "Entity": "int /* Entity */",
+  "Ped": "int /* Ped */",
+  "Any": "int /* TODO: Any */",
+  "Blip": "int /* Blip */",
+  "Vehicle": "int /* Vehicle */",
+  "const char*": "string",
+  "Any*": "IntPtr /* BUG: structure */"
+}
