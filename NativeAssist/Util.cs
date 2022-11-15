@@ -229,6 +229,7 @@ public static ");
             target.Write("retVal = ");
         }
 
+        // Native call
         target.Write("Function.Call");
 
         if (returnsValue)
@@ -238,7 +239,8 @@ public static ");
             target.Write('>');
         }
 
-        target.Write($"((Hash){hash}");
+        // Write native hash conversion
+        target.Write($"((Hash){hash}uL");
 
         foreach (var cc in argPassStatements)
         {
