@@ -117,6 +117,7 @@ public static ");
                 case "Interior":
                 case "Cam":
                 case "FireId":
+                    // Non-pointer script handle value, write as int
                     argPassStatements.Add(pname);
                     target.Write($"int /* {param.Type} */");
                     break;
@@ -130,6 +131,7 @@ public static ");
                 case "Interior*":
                 case "Cam*":
                 case "FireId*":
+                    // Pointer script handle value, write as int*
                     x = true;
                     isUnsafe = true;
                     argPassStatements.Add($"&nativeAssistPointerVar{ptlNum}");
@@ -137,56 +139,67 @@ public static ");
                     break;
                 case "char*":
                 case "const char*":
+                    // String value
                     argPassStatements.Add(pname);
                     target.Write("string");
                     break;
                 case "Any*":
+                    // Pointer unknown type likely structure
                     argPassStatements.Add(pname);
                     target.Write("int /* bug: structure */");
                     break;
                 default:
+                    // Other types
                     argPassStatements.Add(pname);
                     target.Write(param.Type);
                     break;
                 case "BOOL":
+                    // Boolean value
                     argPassStatements.Add(pname);
                     target.Write("bool");
                     break;
                 case "Hash":
+                    // JOAAT Hash value
                     argPassStatements.Add(pname);
                     target.Write("uint");
                     break;
                 case "BOOL*":
+                    // Pointer boolean value
                     x = true;
                     isUnsafe = true;
                     argPassStatements.Add($"&nativeAssistPointerVar{ptlNum}");
                     target.Write($"ref bool");
                     break;
                 case "Hash*":
+                    // Pointer JOAAT hash value
                     x = true;
                     isUnsafe = true;
                     argPassStatements.Add($"&nativeAssistPointerVar{ptlNum}");
                     target.Write($"ref uint");
                     break;
                 case "int*":
+                    // Int pointer value
                     x = true;
                     isUnsafe = true;
                     argPassStatements.Add($"&nativeAssistPointerVar{ptlNum}");
                     target.Write($"ref int");
                     break;
                 case "float*":
+                    // Float pointer value
                     x = true;
                     isUnsafe = true;
                     argPassStatements.Add($"&nativeAssistPointerVar{ptlNum}");
                     target.Write($"ref float");
                     break;
                 case "Vector3*":
+                    // Pointer Vector3 value
                     x = true;
                     isUnsafe = true;
                     argPassStatements.Add($"&nativeAssistPointerVar{ptlNum}");
                     target.Write($"ref Vector3");
                     break;
                 case "Any":
+                    // Any value, write as int
                     argPassStatements.Add(pname);
                     target.Write("int /* bug: Any */");
                     break;
@@ -273,11 +286,14 @@ public static ");
     {
         foreach (var word in _escapedWords)
         {
+            // If the specified name is C# keyword
             if (src == word)
             {
+                // Warn the user
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine("!!! Escaping parameter {0} because it is a C# Word", src);
                 Console.ResetColor();
+                // Escape the word
                 return $"@{src}";
             }
         }
