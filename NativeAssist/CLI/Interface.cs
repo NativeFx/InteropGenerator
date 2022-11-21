@@ -50,7 +50,7 @@ internal static class Interface
 
         var sw = new Stopwatch();
         sw.Start();
-        using var generator = new EnhancedClassicGenerator(File.Create("Natives.cs"), natives);
+        using var generator = new EnhancedClassicGenerator(File.Create("Natives.cs"), natives, opt);
 
         generator.Initialise();
         generator.WriteHeader(version);
