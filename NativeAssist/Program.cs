@@ -5,12 +5,20 @@ using System.Diagnostics;
 using System.Text.Json;
 
 var l = Util.Logger;
+var offline = args.Length == 1 && (args[0] == "--offline" || args[0] == "-o");
 
 l.Information("Starting NativeAssist");
 
 Dictionary<string, Dictionary<string, NativeFunction>>? natives;
 
-await Network.GetLatestJson();
+if (!offline)
+{
+    await Network.GetLatestJson();
+}
+else
+{
+    l.Information("Offline mode");
+}
 
 // Parse native data
 if (File.Exists("natives_latest.json"))
@@ -53,7 +61,7 @@ public static class Natives
 
 foreach (var ns in natives)
 {
-    Console.WriteLine("NS {0}", ns.Key);
+    l.Information($"Processing namespace {ns.Key}");
     writer.WriteLine($"#region {ns.Key}");   
 
     foreach (var native in ns.Value)

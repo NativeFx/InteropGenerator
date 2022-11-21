@@ -18,7 +18,7 @@ internal static class Util
         .WriteTo.File("NativeAssist.log")
         .CreateLogger();
 
-    private static readonly List<string> _escapedWords = new()
+    private static readonly HashSet<string> _escapedWords = new()
     {
         "base",
         "override",
@@ -73,29 +73,40 @@ public static ");
         target.Write(rType);
         target.Write(' ');
 
+        // If native does not have a name, warn
         if (string.IsNullOrWhiteSpace(func.Name))
         {
-            Console.WriteLine("!!! Hash populated native???");
+            Logger.Warning($"Native {hash} does not have a name");
         }
 
         var natName = func.Name;
 
+        // If starts with underscore, remove underscore and warn user
         if (func.Name.StartsWith('_'))
         {
-            Console.WriteLine("!!! Non hashed name???");
+            Logger.Warning($"Native {hash} cames with a name \"{func.Name}\" that is does not match its hash");
             natName = func.Name[(func.Name.IndexOf('_') + 1)..];
         }
 
-        var mx = string.IsNullOrWhiteSpace(func.Name) ? hash[1..] : natName.PascalCase();
+        // Use func name, or remove the number 0 from hash and use as name
+        var declarationName = string.IsNullOrWhiteSpace(func.Name) ? hash[1..] : natName.PascalCase();
+
+        // Get whether the native returns a value
         var returnsValue = func.ReturnType != "void" && !(func.ReturnType == "Any" && func.Comment.Contains("function returns nothing"));
 
-        target.Write(mx);
+        // Write function declaration
+        target.Write(declarationName);
         target.Write('(');
 
+        // Create lists
         var preStatements = new List<string>();
         var argPassStatements = new List<string>();
         var postStatements = new List<string>();
+
+        // If true, process as unsafe
         var isUnsafe = false;
+        
+        // If true, this param is appended
         var notFirstParam = false;
         var retType = GetReturnTypeTag(func.ReturnType);
 
@@ -110,7 +121,8 @@ public static ");
 
             notFirstParam = true;
 
-            var pname = ProcessParamName(param.Name);
+            // Get parameter name (escape if needed)
+            var pname = ProcessParamName(param.Name, declarationName);
 
             var x = false;
             switch (param.Type)
@@ -290,7 +302,7 @@ public static ");
 ");
     }
 
-    public static string ProcessParamName(string src)
+    public static string ProcessParamName(string src, string nativeName)
     {
         foreach (var word in _escapedWords)
         {
@@ -298,9 +310,7 @@ public static ");
             if (src == word)
             {
                 // Warn the user
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("!!! Escaping parameter {0} because it is a C# Word", src);
-                Console.ResetColor();
+                Logger.Warning($"Native {nativeName} cames wtih a parameter with name {src} that must be escaped");
                 // Escape the word
                 return $"@{src}";
             }

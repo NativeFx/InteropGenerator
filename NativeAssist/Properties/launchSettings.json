@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "NativeAssist": {
+      "commandName": "Project",
+      "commandLineArgs": "--offline"
+    }
+  }
+}
