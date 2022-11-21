@@ -28,7 +28,7 @@ public static class Network
 
     public static async Task GetLatestJson()
     {
-        _httpClient.DefaultRequestHeaders.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("WithLithum/NativeAssist", GetVersion()));
+        _httpClient.DefaultRequestHeaders.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("NativeAssist", GetVersion()));
 
         Util.Logger.Information("Downloading latest native file");
         Console.WriteLine();
