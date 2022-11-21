@@ -38,7 +38,7 @@ partial class EnhancedClassicGenerator
             "Any*" => "IntPtr",
             "const char*" => "string",
             "BOOL" => "bool",
-            "Hash" => "uint",
+            "Hash" => _options.HashType,
             _ => src,
         };
     }
@@ -178,7 +178,7 @@ public static ");
                 case "Hash":
                     // JOAAT Hash value
                     argPassStatements.Add(pname);
-                    writer.Write("uint");
+                    writer.Write(_options.HashType);
                     break;
                 case "BOOL*":
                     // Pointer boolean value
@@ -192,7 +192,7 @@ public static ");
                     addPointerVars = true;
                     isUnsafe = true;
                     argPassStatements.Add($"&{_pointerVarName}{ptlNum}");
-                    writer.Write($"ref uint");
+                    writer.Write($"ref {_options.HashType}");
                     break;
                 case "int*":
                     // Int pointer value

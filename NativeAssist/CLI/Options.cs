@@ -9,4 +9,7 @@ public class Options
 
     [Option("handle-type", Default = "int", Required = false, HelpText = "The type for the handles of Entities, &c. for use in natives.")]
     public string HandleType { get; set; } = "int";
+
+    [Option("hash-type", Default = "uint", Required = false, HelpText = "The type for hashes.")]
+    public string HashType { get; set; } = "uint";
 }
