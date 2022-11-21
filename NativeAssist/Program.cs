@@ -6,8 +6,13 @@ using NativeRefHelper.Models;
 using System.Diagnostics;
 using System.Text.Json;
 var l = Util.Logger;
+var result = Parser.Default.ParseArguments<Options>(args);
+
+if (result?.Value == null)
+{
+    return 0;
+}
 
 l.Information("Starting new NativeAssist");
-var result = Parser.Default.ParseArguments<Options>(args);
 
 return await Interface.Run(result.Value);
