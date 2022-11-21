@@ -18,4 +18,7 @@ public class Options
 
     [Option('c', "class-name", Default = "Natives", Required = false, HelpText = "The class of the generated class.")]
     public string ClassName { get; set; } = "Natives";
+
+    [Option('f', "file-name", Default = "Natives.cs", Required = false, HelpText = "The file name.")]
+    public string FileName { get; set; } = "Natives.cs";
 }
