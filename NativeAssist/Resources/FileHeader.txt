@@ -6,6 +6,8 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
+namespace $ns$;
+
 using System;
 using GTA.Native;
 using GTA;

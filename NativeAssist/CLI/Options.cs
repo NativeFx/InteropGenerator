@@ -12,4 +12,7 @@ public class Options
 
     [Option("hash-type", Default = "uint", Required = false, HelpText = "The type for hashes.")]
     public string HashType { get; set; } = "uint";
+
+    [Option('n', "namespace", Default = "NativeFx.Interop", Required = false, HelpText = "The namespace for the generated file.")]
+    public string Namespace { get; set; } = "NativeFx.Interop";
 }
