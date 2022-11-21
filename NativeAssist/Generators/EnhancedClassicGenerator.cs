@@ -77,6 +77,7 @@ internal partial class EnhancedClassicGenerator : IDisposable
     public void WriteHeader(string version)
     {
         writer.WriteLine(Resources.FileHeader.Replace("$version$", version)
-            .Replace("$ns$", _options.Namespace));
+            .Replace("$ns$", _options.Namespace)
+            .Replace("$class$", _options.ClassName));
     }
 }

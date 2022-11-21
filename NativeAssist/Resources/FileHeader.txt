@@ -13,5 +13,5 @@ using GTA.Native;
 using GTA;
 using GTA.Math;
 
-public static class Natives 
+public static class $class$ 
 {
