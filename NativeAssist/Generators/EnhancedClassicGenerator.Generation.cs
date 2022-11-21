@@ -1,7 +1,6 @@
 namespace NativeAssist.Generators;
 
 using NativeRefHelper.Models;
-using Serilog.Core;
 using System.Security;
 
 partial class EnhancedClassicGenerator
@@ -31,7 +30,7 @@ partial class EnhancedClassicGenerator
     {
         if (_scrHandleAliases.Contains(src))
         {
-            return "int";
+            return _options.HandleType;
         }
 
         return src switch
@@ -67,235 +66,234 @@ partial class EnhancedClassicGenerator
 /// </para>
 /// </remarks>
 public static ");
-                var rType = GetReturnTypeTag(func.ReturnType);
-                writer.Write(rType);
-                writer.Write(' ');
+         var rType = GetReturnTypeTag(func.ReturnType);
+         writer.Write(rType);
+         writer.Write(' ');
 
-                // If native does not have a name, warn
-                if (string.IsNullOrWhiteSpace(func.Name))
-                {
-                    Util.Logger.Warning("Native {Hash} does not have a name", hash);
-                }
+         // If native does not have a name, warn
+         if (string.IsNullOrWhiteSpace(func.Name))
+        {
+            Util.Logger.Warning("Native {Hash} does not have a name", hash);
+        }
 
-                var natName = func.Name;
+        var natName = func.Name;
 
-                // If starts with underscore, remove underscore and warn user
-                if (func.Name.StartsWith('_'))
-                {
-                    Util.Logger.Warning("Native {Hash} cames with a name \"{NatName}\" that is does not match its hash", hash, natName);
-                    natName = func.Name[(func.Name.IndexOf('_') + 1)..];
-                }
+        // If starts with underscore, remove underscore and warn user
+        if (func.Name.StartsWith('_'))
+        {
+            Util.Logger.Warning("Native {Hash} cames with a name \"{NatName}\" that is does not match its hash", hash, natName);
+            natName = func.Name[(func.Name.IndexOf('_') + 1)..];
+        }
 
-                // Use func name, or remove the number 0 from hash and use as name
-                var declarationName = string.IsNullOrWhiteSpace(func.Name) ? hash[1..] : natName.PascalCase();
+        // Use func name, or remove the number 0 from hash and use as name
+        var declarationName = string.IsNullOrWhiteSpace(func.Name) ? hash[1..] : natName.PascalCase();
 
-                // Get whether the native returns a value
-                var returnsValue = func.ReturnType != "void" && !(func.ReturnType == "Any" && func.Comment.Contains("function returns nothing"));
+        // Get whether the native returns a value
+        var returnsValue = func.ReturnType != "void" && !(func.ReturnType == "Any" && func.Comment.Contains("function returns nothing"));
 
-                // Write function declaration
-                writer.Write(declarationName);
-                writer.Write('(');
+        // Write function declaration
+        writer.Write(declarationName);
+        writer.Write('(');
 
-                // Create lists
-                var preStatements = new List<string>();
-                var argPassStatements = new List<string>();
-                var postStatements = new List<string>();
+        // Create lists
+        var preStatements = new List<string>();
+        var argPassStatements = new List<string>();
+        var postStatements = new List<string>();
 
-                // If true, process as unsafe
-                var isUnsafe = false;
+        // If true, process as unsafe
+        var isUnsafe = false;
 
-                // If true, this param is appended
-                var notFirstParam = false;
-                var retType = GetReturnTypeTag(func.ReturnType);
+        // If true, this param is appended
+        var notFirstParam = false;
+        var retType = GetReturnTypeTag(func.ReturnType);
 
-                var ptlNum = 0;
+        var ptlNum = 0;
 
-                foreach (var param in func.Parameters)
-                {
-                    if (notFirstParam)
-                    {
-                        writer.Write(", ");
-                    }
+        foreach (var param in func.Parameters)
+        {
+            if (notFirstParam)
+            {
+                writer.Write(", ");
+            }
 
-                    notFirstParam = true;
+            notFirstParam = true;
 
-                    // Get parameter name (escape if needed)
-                    var pname = ProcessParamName(param.Name, declarationName);
+            // Get parameter name (escape if needed)
+            var pname = ProcessParamName(param.Name, declarationName);
 
-                    var addPointerVars = false;
-                    switch (param.Type)
-                    {
-                        default:
-                            // Other types
-                            argPassStatements.Add(pname);
-                            writer.Write(param.Type);
-                            break;
-                        case "Vehicle":
-                        case "Object":
-                        case "Ped":
-                        case "Entity":
-                        case "Blip":
-                        case "Player":
-                        case "ScrHandle":
-                        case "Interior":
-                        case "Cam":
-                        case "FireId":
-                            // Non-pointer script handle value, write as int
-                            argPassStatements.Add(pname);
-                            writer.Write($"int /* {param.Type} */");
-                            break;
-                        case "Vehicle*":
-                        case "Entity*":
-                        case "Ped*":
-                        case "Blip*":
-                        case "Object*":
-                        case "Player*":
-                        case "ScrHandle*":
-                        case "Interior*":
-                        case "Cam*":
-                        case "FireId*":
-                            // Pointer script handle value, write as int*
-                            addPointerVars = true;
-                            isUnsafe = true;
-                            argPassStatements.Add($"&{_pointerVarName}{ptlNum}");
-                            writer.Write($"ref int /* {param.Type} */");
-                            break;
-                        case "char*":
-                        case "const char*":
-                            // String value
-                            argPassStatements.Add(pname);
-                            writer.Write("string");
-                            break;
-                        case "Any*":
-                            // Pointer unknown type likely structure
-                            argPassStatements.Add(pname);
-                            writer.Write("int /* bug: structure */");
-                            break;
-                        case "BOOL":
-                            // Boolean value
-                            argPassStatements.Add(pname);
-                            writer.Write("bool");
-                            break;
-                        case "Hash":
-                            // JOAAT Hash value
-                            argPassStatements.Add(pname);
-                            writer.Write("uint");
-                            break;
-                        case "BOOL*":
-                            // Pointer boolean value
-                            addPointerVars = true;
-                            isUnsafe = true;
-                            argPassStatements.Add($"&{_pointerVarName}{ptlNum}");
-                            writer.Write($"ref bool");
-                            break;
-                        case "Hash*":
-                            // Pointer JOAAT hash value
-                            addPointerVars = true;
-                            isUnsafe = true;
-                            argPassStatements.Add($"&{_pointerVarName}{ptlNum}");
-                            writer.Write($"ref uint");
-                            break;
-                        case "int*":
-                            // Int pointer value
-                            addPointerVars = true;
-                            isUnsafe = true;
-                            argPassStatements.Add($"&{_pointerVarName}{ptlNum}");
-                            writer.Write($"ref int");
-                            break;
-                        case "float*":
-                            // Float pointer value
-                            addPointerVars = true;
-                            isUnsafe = true;
-                            argPassStatements.Add($"&{_pointerVarName}{ptlNum}");
-                            writer.Write($"ref float");
-                            break;
-                        case "Vector3*":
-                            // Pointer Vector3 value
-                            addPointerVars = true;
-                            isUnsafe = true;
-                            argPassStatements.Add($"&{_pointerVarName}{ptlNum}");
-                            writer.Write($"ref Vector3");
-                            break;
-                        case "Any":
-                            // Any value, write as int
-                            argPassStatements.Add(pname);
-                            writer.Write("int /* bug: Any */");
-                            break;
-                    }
+            var addPointerVars = false;
+            switch (param.Type)
+            {
+                default:
+                    // Other types
+                    argPassStatements.Add(pname);
+                    writer.Write(param.Type);
+                    break;
+                case "Vehicle":
+                case "Object":
+                case "Ped":
+                case "Entity":
+                case "Blip":
+                case "Player":
+                case "ScrHandle":
+                case "Interior":
+                case "Cam":
+                case "FireId":
+                    // Non-pointer script handle value, write as defined handle type
+                    argPassStatements.Add(pname);
+                    writer.Write($"{_options.HandleType} /* {param.Type} */");
+                    break;
+                case "Vehicle*":
+                case "Entity*":
+                case "Ped*":
+                case "Blip*":
+                case "Object*":
+                case "Player*":
+                case "ScrHandle*":
+                case "Interior*":
+                case "Cam*":
+                case "FireId*":
+                    // Pointer script handle value, write as int*
+                    addPointerVars = true;
+                    isUnsafe = true;
+                    argPassStatements.Add($"&{_pointerVarName}{ptlNum}");
+                    writer.Write($"ref {_options.HandleType} /* {param.Type} */");
+                    break;
+                case "char*":
+                case "const char*":
+                    // String value
+                    argPassStatements.Add(pname);
+                    writer.Write("string");
+                    break;
+                case "Any*":
+                    // Pointer unknown type likely structure
+                    argPassStatements.Add(pname);
+                    writer.Write("int /* bug: structure */");
+                    break;
+                case "BOOL":
+                    // Boolean value
+                    argPassStatements.Add(pname);
+                    writer.Write("bool");
+                    break;
+                case "Hash":
+                    // JOAAT Hash value
+                    argPassStatements.Add(pname);
+                    writer.Write("uint");
+                    break;
+                case "BOOL*":
+                    // Pointer boolean value
+                    addPointerVars = true;
+                    isUnsafe = true;
+                    argPassStatements.Add($"&{_pointerVarName}{ptlNum}");
+                    writer.Write($"ref bool");
+                    break;
+                case "Hash*":
+                    // Pointer JOAAT hash value
+                    addPointerVars = true;
+                    isUnsafe = true;
+                    argPassStatements.Add($"&{_pointerVarName}{ptlNum}");
+                    writer.Write($"ref uint");
+                    break;
+                case "int*":
+                    // Int pointer value
+                    addPointerVars = true;
+                    isUnsafe = true;
+                    argPassStatements.Add($"&{_pointerVarName}{ptlNum}");
+                    writer.Write($"ref int");
+                    break;
+                case "float*":
+                    // Float pointer value
+                    addPointerVars = true;
+                    isUnsafe = true;
+                    argPassStatements.Add($"&{_pointerVarName}{ptlNum}");
+                    writer.Write($"ref float");
+                    break;
+                case "Vector3*":
+                    // Pointer Vector3 value
+                    addPointerVars = true;
+                    isUnsafe = true;
+                    argPassStatements.Add($"&{_pointerVarName}{ptlNum}");
+                    writer.Write($"ref Vector3");
+                    break;
+                case "Any":
+                    // Any value, write as int
+                    argPassStatements.Add(pname);
+                    writer.Write("int /* bug: Any */");
+                    break;
+            }
 
-                    writer.Write($" {pname}");
+            writer.Write($" {pname}");
 
-                    if (addPointerVars)
-                    {
-                        preStatements.Add($"var nativeAssistPointerVar{ptlNum} = {pname};");
-                        postStatements.Add($"{pname} = nativeAssistPointerVar{ptlNum};");
-                        ptlNum++;
-                    }
-                }
+            if (addPointerVars)
+            {
+                preStatements.Add($"var nativeAssistPointerVar{ptlNum} = {pname};");
+                postStatements.Add($"{pname} = nativeAssistPointerVar{ptlNum};");
+                ptlNum++;
+            }
+        }
 
-                writer.WriteLine("){");
+        writer.WriteLine("){");
 
-                if (returnsValue && postStatements.Count != 0)
-                {
-                     preStatements.Add($"{retType} retVal;");
-                }
+        if (returnsValue && postStatements.Count != 0)
+        {
+            preStatements.Add($"{retType} retVal;");
+        }
 
-                        foreach (var ps in preStatements)
-                        {
-                            writer.WriteLine(ps);
-                        }
+        foreach (var ps in preStatements)
+        {
+            writer.WriteLine(ps);
+        }
 
-                        if (isUnsafe)
-                        {
-                            writer.WriteLine("unsafe {");
-                        }
+        if (isUnsafe)
+        {
+            writer.WriteLine("unsafe {");
+        }
 
-                        if (returnsValue && postStatements.Count == 0)
-                        {
-                            writer.Write("return ");
-                        }
-                        else if (returnsValue)
-                        {
-                            writer.Write("retVal = ");
-                        }
+        if (returnsValue && postStatements.Count == 0)
+        {
+            writer.Write("return ");
+        }
+        else if (returnsValue)
+        {
+            writer.Write("retVal = ");
+        }
 
-                        // Native call
-                        writer.Write("Function.Call");
+        // Native call
+        writer.Write("Function.Call");
 
-                        if (returnsValue)
-                        {
-                            writer.Write('<');
-                            writer.Write(retType);
-                            writer.Write('>');
-                        }
+        if (returnsValue)
+        {
+            writer.Write('<');
+            writer.Write(retType);
+            writer.Write('>');
+        }
 
-                        // Write native hash conversion
-                        writer.Write($"((Hash){hash}uL");
+        // Write native hash conversion
+        writer.Write($"((Hash){hash}uL");
 
-                        foreach (var cc in argPassStatements)
-                        {
-                            writer.Write(", ");
-                            writer.Write(cc);
-                        }
+        foreach (var cc in argPassStatements)
+        {
+            writer.Write(", ");
+            writer.Write(cc);
+        }
 
-                        writer.WriteLine(");");
+        writer.WriteLine(");");
 
-                        if (isUnsafe)
-                        {
-                            writer.WriteLine("}");
-                        }
+        if (isUnsafe)
+        {
+            writer.WriteLine("}");
+        }
 
-                        foreach (var xs in postStatements)
-                        {
-                            writer.WriteLine(xs);
-                        }
+        foreach (var xs in postStatements)
+        {
+            writer.WriteLine(xs);
+        }
 
-                        if (returnsValue && postStatements.Count != 0)
-                        {
-                            writer.WriteLine("return retVal;");
-                        }
+        if (returnsValue && postStatements.Count != 0)
+        {
+            writer.WriteLine("return retVal;");
+        }
 
-                        writer.WriteLine(@"}
-");
+        writer.WriteLine($"}}{Environment.NewLine}");
     }
 }

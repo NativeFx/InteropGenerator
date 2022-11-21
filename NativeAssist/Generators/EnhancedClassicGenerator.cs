@@ -1,5 +1,6 @@
 ﻿namespace NativeAssist.Generators;
 
+using NativeAssist.CLI;
 using NativeAssist.Properties;
 using NativeRefHelper.Models;
 using System;
@@ -11,10 +12,13 @@ using System.Threading.Tasks;
 internal partial class EnhancedClassicGenerator : IDisposable
 {
     private readonly StreamWriter writer;
+    private readonly Options _options;
     private readonly Dictionary<string, Dictionary<string, NativeFunction>> natives;
 
-    public EnhancedClassicGenerator(Stream target, Dictionary<string, Dictionary<string, NativeFunction>> natives)
+    public EnhancedClassicGenerator(Stream target, Dictionary<string, Dictionary<string, NativeFunction>> natives,
+        Options options)
     {
+        _options = options;
         this.writer = new StreamWriter(target);
         this.natives = natives;
     }
