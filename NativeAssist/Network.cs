@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,11 +10,25 @@ public static class Network
 {
 #pragma warning disable S1075
     private const string _nativeAssistUrl = "https://github.com/alloc8or/gta5-nativedb-data/raw/master/natives.json";
-    private static readonly HttpClient _httpClient = new HttpClient();
+    private static readonly HttpClient _httpClient = new();
+
+    public static string GetVersion()
+    {
+        var version = Assembly.GetExecutingAssembly().GetName().Version;
+
+        if (version == null)
+        {
+            return "unknown";
+        }
+        else
+        {
+            return version.ToString();
+        }
+    }
 
     public static async Task GetLatestJson()
     {
-        _httpClient.DefaultRequestHeaders.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("NativeAssist", "0.x"));
+        _httpClient.DefaultRequestHeaders.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("WithLithum/NativeAssist", GetVersion()));
 
         Util.Logger.Information("Downloading latest native file");
         Console.WriteLine();
