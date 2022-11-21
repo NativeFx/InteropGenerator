@@ -1,6 +1,9 @@
 ﻿namespace NativeAssist;
 
 using NativeRefHelper.Models;
+using Serilog;
+using Serilog.Core;
+using Serilog.Sinks.SystemConsole.Themes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +13,11 @@ using System.Threading.Tasks;
 
 internal static class Util
 {
+    public static Logger Logger { get; } = new LoggerConfiguration()
+        .WriteTo.Console(theme: AnsiConsoleTheme.Code)
+        .WriteTo.File("NativeAssist.log")
+        .CreateLogger();
+
     private static readonly List<string> _escapedWords = new()
     {
         "base",
