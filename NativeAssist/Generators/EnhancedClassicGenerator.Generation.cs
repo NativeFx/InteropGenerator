@@ -18,7 +18,7 @@ partial class EnhancedClassicGenerator
             if (src == word)
             {
                 // Warn the user
-                Util.Logger.Warning($"Native {nativeName} cames wtih a parameter with name {src} that must be escaped");
+                Util.Logger.Warning($"Native {nativeName} cames with a parameter with name {src} that must be escaped");
                 // Escape the word
                 return $"@{src}";
             }
