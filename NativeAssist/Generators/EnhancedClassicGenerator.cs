@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-internal class EnhancedClassicGenerator : IDisposable
+internal partial class EnhancedClassicGenerator : IDisposable
 {
     private readonly StreamWriter writer;
     private readonly Dictionary<string, Dictionary<string, NativeFunction>> natives;
@@ -17,6 +17,22 @@ internal class EnhancedClassicGenerator : IDisposable
     {
         this.writer = new StreamWriter(target);
         this.natives = natives;
+    }
+
+    public void Initialise()
+    {
+        Util.Logger.Information("Initialising enhanced classic generator");
+        var escapeds = Resources.EClassicEscapedWords.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+        foreach (var split in escapeds)
+        {
+            _escapedWords.Add(split);
+        }
+
+        var aliases = Resources.EClassicScrHandleAliases.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+        foreach (var split in aliases)
+        {
+            _scrHandleAliases.Add(split);
+        }
     }
 
     public void Dispose()
@@ -39,12 +55,13 @@ internal class EnhancedClassicGenerator : IDisposable
     {
         foreach (var ns in natives)
         {
-            Util.Logger.Information($"Processing namespace {ns.Key}");
+            var nsKey = ns.Key;
+            Util.Logger.Information("Processing namespace {NsKey}", nsKey);
             writer.WriteLine($"#region {ns.Key}");
 
             foreach (var native in ns.Value)
             {
-                Util.OperateNative(native.Value, native.Key, writer);
+                this.OperateNative(native.Value, native.Key, nsKey);
             }
 
             writer.WriteLine($"#endregion");

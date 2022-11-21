@@ -18,6 +18,7 @@ internal static class Util
         .WriteTo.File("NativeAssist.log")
         .CreateLogger();
 
+    [Obsolete("Use EnhancedClassicGenerator")]
     private static readonly HashSet<string> _escapedWords = new()
     {
         "base",
@@ -47,6 +48,7 @@ internal static class Util
         return x[..1].ToUpper() + x[1..].ToLower();
     }
 
+    [Obsolete("Use EnhancedClassicGenerator")]
     public static void OperateNative(NativeFunction func, string hash, StreamWriter target)
     {
         var popu = SecurityElement.Escape(func.Comment).ReplaceLineEndings("<br />");
@@ -302,6 +304,7 @@ public static ");
 ");
     }
 
+    [Obsolete("Use EnhancedClassicGenerator")]
     public static string ProcessParamName(string src, string nativeName)
     {
         foreach (var word in _escapedWords)

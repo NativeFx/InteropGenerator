@@ -1,0 +1,10 @@
+Ped
+Entity
+Vehicle
+ScrHandle
+Object
+Interior
+Cam
+FireId
+Blip
+Player

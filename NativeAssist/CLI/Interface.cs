@@ -1,14 +1,10 @@
-﻿namespace NativeAssist.CLI;
-
-using NativeAssist.Generators;
-using NativeRefHelper.Models;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
+﻿using System.Diagnostics;
 using System.Text.Json;
-using System.Threading.Tasks;
+using NativeAssist.Generators;
+using NativeAssist.Properties;
+using NativeRefHelper.Models;
+
+namespace NativeAssist.CLI;
 
 internal static class Interface
 {
@@ -17,15 +13,13 @@ internal static class Interface
         if (File.Exists("natives_latest.json"))
         {
             // Use stream to parse file
-            using var stream = File.OpenRead("natives_latest.json");
+            await using var stream = File.OpenRead("natives_latest.json");
             return await JsonSerializer.DeserializeAsync<Dictionary<string, Dictionary<string, NativeFunction>>>(stream);
         }
-        else
-        {
-            // Otherwise, use string
-            return JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, NativeFunction>>>(
-            NativeAssist.Properties.Resources.natives);
-        }
+
+        // Otherwise, use string
+        return JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, NativeFunction>>>(
+            Resources.natives);
     }
 
     internal static async Task<int> Run(Options opt)
@@ -52,12 +46,13 @@ internal static class Interface
             return -1;
         }
 
-        l.Information("Starting generator via Enhanced Classic Generator");
+        l.Information("Generating via Enhanced Classic Generator");
 
         var sw = new Stopwatch();
         sw.Start();
         using var generator = new EnhancedClassicGenerator(File.Create("Natives.cs"), natives);
 
+        generator.Initialise();
         generator.WriteHeader(version);
         generator.Run();
 
