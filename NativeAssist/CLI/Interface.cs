@@ -10,14 +10,26 @@ internal static class Interface
 {
     internal static async Task<Dictionary<string, Dictionary<string, NativeFunction>>?> ParseFile()
     {
-        if (File.Exists("natives_latest.json"))
+        try
         {
-            // Use stream to parse file
-            await using var stream = File.OpenRead("natives_latest.json");
-            return await JsonSerializer.DeserializeAsync<Dictionary<string, Dictionary<string, NativeFunction>>>(stream);
+            if (File.Exists("natives_latest.json"))
+            {
+                // Use stream to parse file
+                await using var stream = File.OpenRead("natives_latest.json");
+                return await JsonSerializer.DeserializeAsync<Dictionary<string, Dictionary<string, NativeFunction>>>(stream);
+            }
+        }
+        catch (JsonException x)
+        {
+            Util.Logger.Error("Invalid json file: {Message}", x.Message);
+            Util.Logger.Warning("Using fallback.");
+        }
+        catch (Exception ex)
+        {
+            Util.Logger.Error(ex, "Unable to use the json file on disk, using fallback");
         }
 
-        // Otherwise, use string
+        // Otherwise, use fallback
         return JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, NativeFunction>>>(
             Resources.natives);
     }
