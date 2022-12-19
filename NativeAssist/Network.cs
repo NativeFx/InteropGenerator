@@ -33,6 +33,7 @@ public static class Network
         Util.Logger.Information("Downloading latest native file");
         Console.WriteLine();
         var x = 0L;
+        var counter = 0;
         try
         {
             using var s = File.Create("natives_latest.json");
@@ -46,7 +47,16 @@ public static class Network
 
                 s.WriteByte((byte)b);
                 x++;
-                Console.Write($"\r{x} written, current byte {b}");
+                
+                if (counter < 10000)
+                {
+                    counter++;
+                }
+                else
+                {
+                    counter = 0;
+                    Console.Write($"\r{x / 1000} written");
+                }
             }
 
             Console.WriteLine();
