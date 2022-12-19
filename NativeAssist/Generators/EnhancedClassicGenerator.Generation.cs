@@ -81,8 +81,19 @@ public static ");
         // If starts with underscore, remove underscore and warn user
         if (func.Name.StartsWith('_'))
         {
-            Util.Logger.Warning("Native {Hash} cames with a name \"{NatName}\" that is does not match its hash", hash, natName);
-            natName = func.Name[(func.Name.IndexOf('_') + 1)..];
+            // Check if native is named with hash
+            if (func.Name.StartsWith("_0x"))
+            {
+                // Remove '_0'
+                Util.Logger.Warning("Native {Hash} does not have a human-readable name", hash);
+                natName = func.Name[(func.Name.IndexOf('_') + 2)..];
+            }
+            else
+            {
+                // Otherwise, just remove '_'
+                Util.Logger.Warning("Native {Hash} cames with a name \"{NatName}\" that is does not match its hash", hash, natName);
+                natName = func.Name[(func.Name.IndexOf('_') + 1)..];
+            }
         }
 
         // Use func name, or remove the number 0 from hash and use as name
@@ -99,6 +110,9 @@ public static ");
         var preStatements = new List<string>();
         var argPassStatements = new List<string>();
         var postStatements = new List<string>();
+
+        // Added parameters
+        var addedParameters = new HashSet<string>();
 
         // If true, process as unsafe
         var isUnsafe = false;
@@ -120,6 +134,17 @@ public static ");
 
             // Get parameter name (escape if needed)
             var pname = ProcessParamName(param.Name, declarationName);
+
+            // Detect duplicate parameter names
+            if (addedParameters.Contains(pname))
+            {
+                // If duplicate, postpon added parameters count
+                Util.Logger.Warning("Parameter name {PName} was a duplicate, processing", pname);
+                pname = $"{pname}{addedParameters.Count}";
+            }
+
+            // Add to duplicate detection
+            addedParameters.Add(pname);
 
             var addPointerVars = false;
             switch (param.Type)
@@ -185,7 +210,7 @@ public static ");
                     addPointerVars = true;
                     isUnsafe = true;
                     argPassStatements.Add($"&{_pointerVarName}{ptlNum}");
-                    writer.Write($"ref bool");
+                    writer.Write("ref bool");
                     break;
                 case "Hash*":
                     // Pointer JOAAT hash value
@@ -199,21 +224,21 @@ public static ");
                     addPointerVars = true;
                     isUnsafe = true;
                     argPassStatements.Add($"&{_pointerVarName}{ptlNum}");
-                    writer.Write($"ref int");
+                    writer.Write("ref int");
                     break;
                 case "float*":
                     // Float pointer value
                     addPointerVars = true;
                     isUnsafe = true;
                     argPassStatements.Add($"&{_pointerVarName}{ptlNum}");
-                    writer.Write($"ref float");
+                    writer.Write("ref float");
                     break;
                 case "Vector3*":
                     // Pointer Vector3 value
                     addPointerVars = true;
                     isUnsafe = true;
                     argPassStatements.Add($"&{_pointerVarName}{ptlNum}");
-                    writer.Write($"ref Vector3");
+                    writer.Write("ref Vector3");
                     break;
                 case "Any":
                     // Any value, write as int
