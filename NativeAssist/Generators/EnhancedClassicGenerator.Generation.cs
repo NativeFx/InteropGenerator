@@ -17,7 +17,7 @@ partial class EnhancedClassicGenerator
             if (src == word)
             {
                 // Warn the user
-                Util.Logger.Warning($"Native {nativeName} cames with a parameter with name {src} that must be escaped");
+                Util.Logger.Warning("Native {NativeName} cames with a parameter with name {Src} that must be escaped", nativeName, src);
                 // Escape the word
                 return $"@{src}";
             }
@@ -288,9 +288,7 @@ public static ");
 
         if (returnsValue)
         {
-            writer.Write('<');
-            writer.Write(retType);
-            writer.Write('>');
+            writer.Write($"<{retType}>");
         }
 
         // Write native hash conversion
