@@ -1,4 +1,5 @@
-# NativeAssist
+# THIS PROJECT IS NO LONGER MAINTAINED
+# SEE <https://github.com/WithLithum/native-wrapper-gen>
 
 NativeAssist is the generator program for the [NativeFx.Interop](https://github.com/WithLithum/NativeFx-Interop) project.
 
